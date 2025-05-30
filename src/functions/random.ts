@@ -3,6 +3,8 @@ import { Handler } from "@netlify/functions";
 const DISCOGS_TOKEN = process.env.DISCOGS_TOKEN;
 const USERNAME = process.env.DISCOGS_USERNAME;
 const FOLDER_ID = 0; // Default folder (collection)
+const APP_VERSION = '0.1';
+const USER_AGENT = `DiscogsTrmnlRandom/${APP_VERSION}`;
 
 type DiscogsRelease = {
   id: number;
@@ -51,7 +53,7 @@ export const handler: Handler = async (event) => {
         {
           headers: {
             'Authorization': `Discogs token=${DISCOGS_TOKEN}`,
-            'User-Agent': 'DiscogsTrmnlRandom/0.1',
+            'User-Agent': USER_AGENT,
           }
         }
       );
