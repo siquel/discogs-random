@@ -124,7 +124,8 @@ export const handler: Handler = async (event) => {
           id: release.id,
           title: release.basic_information.title,
           year: release.basic_information.year,
-          artists: release.basic_information.artists.map(a => a.name),
+          // Rename e.g "Nazareth (2)" to "Nazareth"
+          artists: release.basic_information.artists.map(a => a.name.replace(/\s\(\d\)$/, '')),
           labels: release.basic_information.labels.map(l => l.name),
           formats: release.basic_information.formats.map(f => ({
             name: f.name,
