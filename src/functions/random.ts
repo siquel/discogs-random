@@ -47,7 +47,6 @@ export const handler: Handler = async (event) => {
     let allReleases: DiscogsRelease[] = [];
     let currentPage = 1;
     let totalPages = 1;
-    let shouldContinue = true;
 
     do {
       const queryParams = new URLSearchParams({
@@ -70,26 +69,13 @@ export const handler: Handler = async (event) => {
         }
       );
 
-      console.log(response);
+      console.log(response)
 
       if (!response.ok) {
         throw new Error(`Discogs API error: ${response.statusText}`);
       }
 
       const data = await response.json() as DiscogsResponse;
-      
-      // If format is specified, verify we still have matching releases
-      if (format) {
-        const hasMatchingFormat = data.releases.some(release =>
-          release.basic_information.formats.some(f => 
-            f.name.toLowerCase() === format.toLowerCase()
-          )
-        );
-        
-        if (!hasMatchingFormat) {
-          shouldContinue = false;
-        }
-      }
 
       // Filter releases if format is specified
       const filteredReleases = format
@@ -104,7 +90,7 @@ export const handler: Handler = async (event) => {
       
       totalPages = data.pagination.pages;
       currentPage++;
-    } while (currentPage <= totalPages && shouldContinue);
+    } while (currentPage <= totalPages);
 
     // Get random releases
     const randomReleases = [];
