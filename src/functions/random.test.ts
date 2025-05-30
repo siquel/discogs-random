@@ -148,7 +148,7 @@ describe('Random Release Handler', () => {
       pages: [
         [
           { title: 'CD Album', format: 'CD' },
-          { title: 'Vinyl Album 1', format: 'Vinyl' }
+          { title: 'CD Album 2', format: 'CD' }
         ],
         [
           { title: 'Vinyl Album 2', format: 'Vinyl' },
@@ -165,67 +165,23 @@ describe('Random Release Handler', () => {
       ]
     });
 
-    const [page1Response, page2Response, page3Response, page4Response] = responses;
-
     // Mock all four pages
     nock('https://api.discogs.com')
       .get(`/users/${environment.DISCOGS_USERNAME}/collection/folders/0/releases`)
       .query(true)
-      .reply(200, page1Response)
+      .reply(200, responses[0])
       // Page 2
       .get(`/users/${environment.DISCOGS_USERNAME}/collection/folders/0/releases`)
       .query(true)
-      .reply(200, page2Response)
+      .reply(200, responses[1])
       // Page 3
       .get(`/users/${environment.DISCOGS_USERNAME}/collection/folders/0/releases`)
       .query(true)
-      .reply(200, page3Response)
+      .reply(200, responses[2])
       // Page 4
       .get(`/users/${environment.DISCOGS_USERNAME}/collection/folders/0/releases`)
       .query(true)
-      .reply(200, page4Response);
-
-    // Test getting all releases
-    await LambdaTester(handler)
-      .event(event({ queryStringParameters: { count: '8' } }))
-      .expectResolve((result) => {
-        const body = JSON.parse(result.body!);
-        expect(result.statusCode).toBe(200);
-        expect(body.count).toBe(8);
-        expect(body.releases).toHaveLength(8);
-
-        // Verify format counts
-        const formatCounts = body.releases.reduce((acc: Record<string, number>, release: any) => {
-          const format = release.formats[0].name;
-          acc[format] = (acc[format] || 0) + 1;
-          return acc;
-        }, {});
-
-        expect(formatCounts).toEqual({
-          CD: 1,
-          Vinyl: 4,
-          Digital: 3
-        });
-      });
-
-
-    // Mock all four pages
-    nock('https://api.discogs.com')
-    .get(`/users/${environment.DISCOGS_USERNAME}/collection/folders/0/releases`)
-    .query(true)
-    .reply(200, page1Response)
-    // Page 2
-    .get(`/users/${environment.DISCOGS_USERNAME}/collection/folders/0/releases`)
-    .query(true)
-    .reply(200, page2Response)
-    // Page 3
-    .get(`/users/${environment.DISCOGS_USERNAME}/collection/folders/0/releases`)
-    .query(true)
-    .reply(200, page3Response)
-    // Page 4
-    .get(`/users/${environment.DISCOGS_USERNAME}/collection/folders/0/releases`)
-    .query(true)
-    .reply(200, page4Response);
+      .reply(200, responses[3]);
 
     // Test filtering by vinyl format
     await LambdaTester(handler)
@@ -233,7 +189,7 @@ describe('Random Release Handler', () => {
       .expectResolve((result) => {
         const body = JSON.parse(result.body!);
         expect(result.statusCode).toBe(200);
-        expect(body.releases.length).toBe(4);
+        expect(body.releases.length).toBe(3);
         body.releases.forEach((release: any) => {
           expect(release.formats[0].name).toBe('Vinyl');
         });

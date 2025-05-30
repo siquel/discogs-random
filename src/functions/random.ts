@@ -69,8 +69,6 @@ export const handler: Handler = async (event) => {
         }
       );
 
-      console.log(response)
-
       if (!response.ok) {
         throw new Error(`Discogs API error: ${response.statusText}`);
       }
