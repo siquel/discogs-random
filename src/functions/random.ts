@@ -1,7 +1,6 @@
 import { Handler } from "@netlify/functions";
+import { environment } from "../environment";
 
-const DISCOGS_TOKEN = process.env.DISCOGS_TOKEN;
-const USERNAME = process.env.DISCOGS_USERNAME;
 const FOLDER_ID = 0; // Default folder (collection)
 const APP_VERSION = '0.1';
 const USER_AGENT = `DiscogsTrmnlRandom/${APP_VERSION}`;
@@ -48,10 +47,10 @@ const createQueryParams = (page: number, format?: string): URLSearchParams => {
 const fetchPage = async (page: number, format?: string): Promise<DiscogsResponse> => {
   const queryParams = createQueryParams(page, format);
   const response = await fetch(
-    `https://api.discogs.com/users/${USERNAME}/collection/folders/${FOLDER_ID}/releases?${queryParams}`,
+    `${environment.DISCOGS_API_HOST}/users/${environment.DISCOGS_USERNAME}/collection/folders/${FOLDER_ID}/releases?${queryParams}`,
     {
       headers: {
-        'Authorization': `Discogs token=${DISCOGS_TOKEN}`,
+        'Authorization': `Discogs token=${environment.DISCOGS_TOKEN}`,
         'User-Agent': USER_AGENT,
       }
     }
@@ -72,7 +71,7 @@ export const handler: Handler = async (event) => {
     );
     const format = event.queryStringParameters?.format;
 
-    if (!USERNAME || !DISCOGS_TOKEN) {
+    if (!environment.DISCOGS_USERNAME || !environment.DISCOGS_TOKEN) {
       throw new Error("Missing Discogs configuration");
     }
 

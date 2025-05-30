@@ -66,7 +66,7 @@ describe('Random Release Handler', () => {
       ]]
     });
 
-    nock('https://api.discogs.com')
+    nock(environment.DISCOGS_API_HOST)
       .get(`/users/${environment.DISCOGS_USERNAME}/collection/folders/0/releases`)
       .query(true)
       .reply(200, responses[0]);
@@ -90,7 +90,7 @@ describe('Random Release Handler', () => {
       ]]
     });
 
-    nock('https://api.discogs.com')
+    nock(environment.DISCOGS_API_HOST)
       .get(`/users/${environment.DISCOGS_USERNAME}/collection/folders/0/releases`)
       .query(true)
       .reply(200, responses[0]);
@@ -106,7 +106,7 @@ describe('Random Release Handler', () => {
   });
 
   it('should handle API errors correctly', async () => {
-    nock('https://api.discogs.com')
+    nock(environment.DISCOGS_API_HOST)
       .get(`/users/${environment.DISCOGS_USERNAME}/collection/folders/0/releases`)
       .query(true)
       .reply(404, { message: 'Not Found' });
@@ -128,7 +128,7 @@ describe('Random Release Handler', () => {
       ]]
     });
 
-    nock('https://api.discogs.com')
+    nock(environment.DISCOGS_API_HOST)
       .get(`/users/${environment.DISCOGS_USERNAME}/collection/folders/0/releases`)
       .query(true)
       .reply(200, responses[0]);
@@ -166,7 +166,7 @@ describe('Random Release Handler', () => {
     });
 
     // Mock all four pages
-    nock('https://api.discogs.com')
+    nock(environment.DISCOGS_API_HOST)
       .get(`/users/${environment.DISCOGS_USERNAME}/collection/folders/0/releases`)
       .query(true)
       .reply(200, responses[0])
