@@ -1,8 +1,8 @@
 import LambdaTester from 'lambda-tester';
 import nock from 'nock';
-import { handler } from './random';
+import { handler } from '../../functions/random';
 import { HandlerEvent } from '@netlify/functions';
-import { environment } from '../environment';
+import { environment } from '../../environment';
 const event = (event?: Partial<HandlerEvent>): HandlerEvent =>  {
     return {
       rawUrl: event?.rawUrl || "",
