@@ -37,6 +37,7 @@ export const handler: Handler = async (event) => {
       parseInt(event.queryStringParameters?.count || "1", 10),
       100 // Maximum limit
     );
+    const format = event.queryStringParameters?.format;
 
     if (!USERNAME || !DISCOGS_TOKEN) {
       throw new Error("Missing Discogs configuration");
@@ -46,10 +47,21 @@ export const handler: Handler = async (event) => {
     let allReleases: DiscogsRelease[] = [];
     let currentPage = 1;
     let totalPages = 1;
+    let shouldContinue = true;
 
     do {
+      const queryParams = new URLSearchParams({
+        page: currentPage.toString(),
+        per_page: '100',
+      });
+      
+      if (format) {
+        queryParams.append('format', format);
+        queryParams.append('sort', 'format');
+      }
+
       const response = await fetch(
-        `https://api.discogs.com/users/${USERNAME}/collection/folders/${FOLDER_ID}/releases?page=${currentPage}&per_page=100`,
+        `https://api.discogs.com/users/${USERNAME}/collection/folders/${FOLDER_ID}/releases?${queryParams}`,
         {
           headers: {
             'Authorization': `Discogs token=${DISCOGS_TOKEN}`,
@@ -58,16 +70,41 @@ export const handler: Handler = async (event) => {
         }
       );
 
+      console.log(response);
+
       if (!response.ok) {
         throw new Error(`Discogs API error: ${response.statusText}`);
       }
 
       const data = await response.json() as DiscogsResponse;
-      allReleases = [...allReleases, ...data.releases];
+      
+      // If format is specified, verify we still have matching releases
+      if (format) {
+        const hasMatchingFormat = data.releases.some(release =>
+          release.basic_information.formats.some(f => 
+            f.name.toLowerCase() === format.toLowerCase()
+          )
+        );
+        
+        if (!hasMatchingFormat) {
+          shouldContinue = false;
+        }
+      }
+
+      // Filter releases if format is specified
+      const filteredReleases = format
+        ? data.releases.filter(release =>
+            release.basic_information.formats.some(f => 
+              f.name.toLowerCase() === format.toLowerCase()
+            )
+          )
+        : data.releases;
+
+      allReleases = [...allReleases, ...filteredReleases];
       
       totalPages = data.pagination.pages;
       currentPage++;
-    } while (currentPage <= totalPages);
+    } while (currentPage <= totalPages && shouldContinue);
 
     // Get random releases
     const randomReleases = [];
