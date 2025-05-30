@@ -15,6 +15,20 @@ type DiscogsRelease = {
   };
 }
 
+type DiscogsResponse = {
+  pagination: {
+    page: number;
+    pages: number;
+    per_page: number;
+    items: number;
+    urls: {
+      next?: string;
+      last?: string;
+    };
+  };
+  releases: DiscogsRelease[];
+}
+
 export const handler: Handler = async (event) => {
   try {
     const count = Math.min(
@@ -26,34 +40,43 @@ export const handler: Handler = async (event) => {
       throw new Error("Missing Discogs configuration");
     }
 
-    // Fetch collection
-    const response = await fetch(
-      `https://api.discogs.com/users/${USERNAME}/collection/folders/${FOLDER_ID}/releases?per_page=100`,
-      {
-        headers: {
-          'Authorization': `Discogs token=${DISCOGS_TOKEN}`,
-          'User-Agent': 'DiscogsTrmnlRandom/0.1',
+    // Fetch all pages
+    let allReleases: DiscogsRelease[] = [];
+    let currentPage = 1;
+    let totalPages = 1;
+
+    do {
+      const response = await fetch(
+        `https://api.discogs.com/users/${USERNAME}/collection/folders/${FOLDER_ID}/releases?page=${currentPage}&per_page=100`,
+        {
+          headers: {
+            'Authorization': `Discogs token=${DISCOGS_TOKEN}`,
+            'User-Agent': 'DiscogsTrmnlRandom/0.1',
+          }
         }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Discogs API error: ${response.statusText}`);
       }
-    );
 
-    if (!response.ok) {
-      throw new Error(`Discogs API error: ${response.statusText}`);
-    }
-
-    const data = await response.json();
-    const releases = data.releases as DiscogsRelease[];
+      const data = await response.json() as DiscogsResponse;
+      allReleases = [...allReleases, ...data.releases];
+      
+      totalPages = data.pagination.pages;
+      currentPage++;
+    } while (currentPage <= totalPages);
 
     // Get random releases
     const randomReleases = [];
-    const totalReleases = releases.length;
+    const totalReleases = allReleases.length;
     const usedIndexes = new Set<number>();
 
     while (randomReleases.length < count && usedIndexes.size < totalReleases) {
       const randomIndex = Math.floor(Math.random() * totalReleases);
       if (!usedIndexes.has(randomIndex)) {
         usedIndexes.add(randomIndex);
-        randomReleases.push(releases[randomIndex]);
+        randomReleases.push(allReleases[randomIndex]);
       }
     }
 
