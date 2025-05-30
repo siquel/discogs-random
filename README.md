@@ -30,7 +30,7 @@ npx netlify env:set DISCOGS_USERNAME your_username_here
 ### Get Random Releases
 
 ```bash
-curl https://fanciful-jelly-2dffd0.netlify.app/random
+curl "http://localhost:8888/random"
 ```
 
 ### Get Random Releases with Format Filter
@@ -40,7 +40,7 @@ Query Parameters:
 - `format` (optional): Filter by format (e.g., "Vinyl", "CD", "Cassette")
 
 ```bash
-curl https://fanciful-jelly-2dffd0.netlify.app/random?format=vinyl
+curl "http://localhost:8888/random?format=vinyl"
 ```
 
 Response:
