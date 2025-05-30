@@ -13,6 +13,8 @@ type DiscogsRelease = {
     artists: Array<{ name: string }>;
     labels: Array<{ name: string }>;
     formats: Array<{ name: string; descriptions?: string[] }>;
+    thumb: string;
+    cover_image: string;
   };
 }
 
@@ -127,7 +129,9 @@ export const handler: Handler = async (event) => {
           formats: release.basic_information.formats.map(f => ({
             name: f.name,
             descriptions: f.descriptions || []
-          }))
+          })),
+          thumb: release.basic_information.thumb,
+          cover_image: release.basic_information.cover_image
         }))
       }),
     };
