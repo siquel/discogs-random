@@ -31,6 +31,39 @@ type DiscogsResponse = {
   releases: DiscogsRelease[];
 }
 
+const createQueryParams = (page: number, format?: string): URLSearchParams => {
+  const params = new URLSearchParams({
+    page: page.toString(),
+    per_page: '100',
+  });
+  
+  if (format) {
+    params.append('format', format);
+    params.append('sort', 'format');
+  }
+  
+  return params;
+};
+
+const fetchPage = async (page: number, format?: string): Promise<DiscogsResponse> => {
+  const queryParams = createQueryParams(page, format);
+  const response = await fetch(
+    `https://api.discogs.com/users/${USERNAME}/collection/folders/${FOLDER_ID}/releases?${queryParams}`,
+    {
+      headers: {
+        'Authorization': `Discogs token=${DISCOGS_TOKEN}`,
+        'User-Agent': USER_AGENT,
+      }
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(`Discogs API error: ${response.statusText}`);
+  }
+
+  return response.json() as Promise<DiscogsResponse>;
+};
+
 export const handler: Handler = async (event) => {
   try {
     const count = Math.min(
@@ -49,31 +82,7 @@ export const handler: Handler = async (event) => {
     let totalPages = 1;
 
     do {
-      const queryParams = new URLSearchParams({
-        page: currentPage.toString(),
-        per_page: '100',
-      });
-      
-      if (format) {
-        queryParams.append('format', format);
-        queryParams.append('sort', 'format');
-      }
-
-      const response = await fetch(
-        `https://api.discogs.com/users/${USERNAME}/collection/folders/${FOLDER_ID}/releases?${queryParams}`,
-        {
-          headers: {
-            'Authorization': `Discogs token=${DISCOGS_TOKEN}`,
-            'User-Agent': USER_AGENT,
-          }
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`Discogs API error: ${response.statusText}`);
-      }
-
-      const data = await response.json() as DiscogsResponse;
+      const data = await fetchPage(currentPage, format);
 
       // Filter releases if format is specified
       const filteredReleases = format
